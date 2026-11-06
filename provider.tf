@@ -13,13 +13,11 @@ terraform {
     bucket       = "infosys-terraform-state-741167604930-ap-south-1"
     key          = "infosys-devops/terraform.tfstate"
     region       = "ap-south-1"
-    profile      = "devops-lab"
     encrypt      = true
     use_lockfile = true
   }
 }
 
 provider "aws" {
-  region  = var.aws_region
-  profile = "devops-lab"
+  region = var.aws_region
 }

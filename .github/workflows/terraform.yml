@@ -5,7 +5,6 @@ on:
   push:
     branches:
       - main
-
   pull_request:
     branches:
       - main
@@ -30,11 +29,9 @@ jobs:
 
       - name: Initialize main Terraform project
         run: terraform init -backend=false
-        working-directory: .
 
       - name: Validate main Terraform project
         run: terraform validate
-        working-directory: .
 
       - name: Initialize backend bootstrap project
         run: terraform init -backend=false
@@ -43,3 +40,34 @@ jobs:
       - name: Validate backend bootstrap project
         run: terraform validate
         working-directory: ./backend-bootstrap
+
+  terraform-plan:
+    name: AWS Terraform Plan
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Configure AWS credentials using OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::741167604930:role/GitHubActions-Terraform-Deploy
+          aws-region: ap-south-1
+
+      - name: Verify AWS identity
+        run: aws sts get-caller-identity
+
+      - name: Initialize Terraform with S3 backend
+        run: terraform init
+
+      - name: Run Terraform plan
+        run: terraform plan -no-color
